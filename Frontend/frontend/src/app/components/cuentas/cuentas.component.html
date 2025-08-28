@@ -1,0 +1,298 @@
+<h2>Cuentas</h2>
+<button
+  type="button"
+  (click)="mostrarModalAdd = true"
+  style="margin-bottom: 1rem"
+>
+  Nueva Cuenta
+</button>
+<input
+  type="text"
+  placeholder="Buscar por número de cuenta"
+  [(ngModel)]="filtro"
+  style="margin-bottom: 1rem; padding: 0.5rem; width: 100%"
+/>
+<table>
+  <thead>
+    <tr>
+      <th>Acciones</th>
+      <th>Número de Cuenta</th>
+      <th>Tipo</th>
+      <th>Saldo Inicial</th>
+      <th>Cliente</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let c of filteredCuentas">
+      <td>
+        <button type="button" (click)="abrirEditarCuenta(c)">Editar</button>
+        <button type="button" (click)="abrirEliminarCuenta(c)">Eliminar</button>
+      </td>
+      <td>{{ c.numeroCuenta }}</td>
+      <td>
+        {{
+          c.tipoCuenta === "A"
+            ? "Ahorros"
+            : c.tipoCuenta === "C"
+            ? "Corriente"
+            : c.tipoCuenta
+        }}
+      </td>
+      <td>{{ c.saldoInicial | currency }}</td>
+      <td>{{ c.cliente?.nombre }}</td>
+      <td>{{ c.estado ? "Activo" : "Inactivo" }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Modal para crear nueva cuenta -->
+<div *ngIf="mostrarModalAdd" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Nueva Cuenta</h3>
+    <form #addCuentaForm="ngForm" (ngSubmit)="crearCuenta()">
+      <div>
+        <label>Número de Cuenta:</label>
+        <input
+          type="text"
+          placeholder="Número de Cuenta"
+          [(ngModel)]="nuevaCuenta.numeroCuenta"
+          name="numeroCuenta"
+          required
+          minlength="5"
+          maxlength="20"
+          #numeroCuenta="ngModel"
+        />
+        <div *ngIf="numeroCuenta.invalid && numeroCuenta.touched" class="error">
+          <span *ngIf="numeroCuenta.errors?.['required']">
+            El número de cuenta es obligatorio.
+          </span>
+          <span *ngIf="numeroCuenta.errors?.['minlength']"
+            >Mínimo 5 caracteres.</span
+          >
+        </div>
+      </div>
+      <div>
+        <label>Tipo de Cuenta:</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="tipoCuenta"
+              [(ngModel)]="nuevaCuenta.tipoCuenta"
+              value="A"
+              required
+              #tipoCuentaA="ngModel"
+              style="width: auto"
+            />
+            Ahorros
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="tipoCuenta"
+              [(ngModel)]="nuevaCuenta.tipoCuenta"
+              value="C"
+              required
+              #tipoCuentaC="ngModel"
+              style="width: auto"
+            />
+            Corriente
+          </label>
+        </div>
+        <div
+          *ngIf="addCuentaForm.submitted && !nuevaCuenta.tipoCuenta"
+          class="error"
+        >
+          El tipo de cuenta es obligatorio.
+        </div>
+      </div>
+      <div>
+        <label>Saldo Inicial:</label>
+        <input
+          type="number"
+          placeholder="Saldo Inicial"
+          [(ngModel)]="nuevaCuenta.saldoInicial"
+          name="saldoInicial"
+          required
+          min="0"
+          #saldoInicial="ngModel"
+        />
+        <div *ngIf="saldoInicial.invalid && saldoInicial.touched" class="error">
+          <span *ngIf="saldoInicial.errors?.['required']">
+            El saldo inicial es obligatorio.
+          </span>
+          <span *ngIf="saldoInicial.errors?.['min']">Saldo mínimo: 0.</span>
+        </div>
+      </div>
+      <div>
+        <label>Cliente:</label>
+        <select
+          [(ngModel)]="nuevaCuenta.clienteId"
+          name="clienteId"
+          required
+          #clienteId="ngModel"
+        >
+          <option value="" disabled selected>Seleccione un cliente</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente.personaId">
+            {{ cliente.nombre }} ({{ cliente.identificacion }})
+          </option>
+        </select>
+        <div *ngIf="clienteId.invalid && clienteId.touched" class="error">
+          <span *ngIf="clienteId.errors?.['required']">
+            El Cliente es obligatorio.
+          </span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button
+          type="button"
+          (click)="mostrarModalAdd = false; nuevaCuenta = getCuentaVacia()"
+        >
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="addCuentaForm.invalid">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para actualizar nueva cuenta -->
+<div *ngIf="mostrarModalUpdate" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Actualizar Cuenta</h3>
+    <form #updateCuentaForm="ngForm" (ngSubmit)="actualizarCuenta()">
+      <div>
+        <label>Número de Cuenta:</label>
+        <input
+          type="text"
+          placeholder="Número de Cuenta"
+          [(ngModel)]="cuentaSeleccionada.numeroCuenta"
+          name="numeroCuenta"
+          required
+          minlength="5"
+          maxlength="20"
+          #numeroCuenta="ngModel"
+        />
+        <div *ngIf="numeroCuenta.invalid && numeroCuenta.touched" class="error">
+          <span *ngIf="numeroCuenta.errors?.['required']">
+            El número de cuenta es obligatorio.
+          </span>
+          <span *ngIf="numeroCuenta.errors?.['minlength']"
+            >Mínimo 5 caracteres.</span
+          >
+        </div>
+      </div>
+      <div>
+        <label>Tipo de Cuenta:</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="tipoCuenta"
+              [(ngModel)]="cuentaSeleccionada.tipoCuenta"
+              value="A"
+              required
+              #tipoCuentaA="ngModel"
+              style="width: auto"
+            />
+            Ahorros
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="tipoCuenta"
+              [(ngModel)]="cuentaSeleccionada.tipoCuenta"
+              value="C"
+              required
+              #tipoCuentaC="ngModel"
+              style="width: auto"
+            />
+            Corriente
+          </label>
+        </div>
+        <div
+          *ngIf="updateCuentaForm.submitted && !cuentaSeleccionada.tipoCuenta"
+          class="error"
+        >
+          El tipo de cuenta es obligatorio.
+        </div>
+      </div>
+      <div>
+        <label>Saldo Inicial:</label>
+        <input
+          type="number"
+          placeholder="Saldo Inicial"
+          [(ngModel)]="cuentaSeleccionada.saldoInicial"
+          name="saldoInicial"
+          required
+          min="0"
+          #saldoInicial="ngModel"
+        />
+        <div *ngIf="saldoInicial.invalid && saldoInicial.touched" class="error">
+          <span *ngIf="saldoInicial.errors?.['required']">
+            El saldo inicial es obligatorio.
+          </span>
+          <span *ngIf="saldoInicial.errors?.['min']">Saldo mínimo: 0.</span>
+        </div>
+      </div>
+      <div>
+        <label>Cliente:</label>
+        <select
+          [(ngModel)]="cuentaSeleccionada.clienteId"
+          name="clienteId"
+          required
+          #clienteId="ngModel"
+        >
+          <option value="" disabled selected>Seleccione un cliente</option>
+          <option *ngFor="let cliente of clientes" [value]="cliente.personaId">
+            {{ cliente.nombre }} ({{ cliente.identificacion }})
+          </option>
+        </select>
+        <div *ngIf="clienteId.invalid && clienteId.touched" class="error">
+          <span *ngIf="clienteId.errors?.['required']">
+            El Cliente es obligatorio.
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Estado:</label>
+        <input
+          type="checkbox"
+          [(ngModel)]="cuentaSeleccionada.estado"
+          name="estado"
+          style="width: auto"
+        />
+        <span>{{ cuentaSeleccionada.estado ? "Activo" : "Inactivo" }}</span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" (click)="mostrarModalUpdate = false">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="updateCuentaForm.invalid">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para eliminar cuenta -->
+<div *ngIf="mostrarModalDelete" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Eliminar Cuenta</h3>
+    <p>
+      ¿Está seguro que desea eliminar a
+      <strong>{{ cuentaSeleccionada.numeroCuenta }}</strong
+      >?
+    </p>
+    <div class="modal-actions">
+      <button type="button" (click)="mostrarModalDelete = false">
+        Cancelar
+      </button>
+      <button type="button" (click)="eliminarCuenta()">Eliminar</button>
+    </div>
+  </div>
+</div>

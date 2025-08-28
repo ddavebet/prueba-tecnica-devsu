@@ -1,0 +1,426 @@
+<h2>Lista de Clientes</h2>
+<button
+  type="button"
+  (click)="mostrarModalAdd = true"
+  style="margin-bottom: 1rem"
+>
+  Nuevo Cliente
+</button>
+<input
+  type="text"
+  placeholder="Buscar por nombre o identificación"
+  [(ngModel)]="filtro"
+  style="margin-bottom: 1rem; padding: 0.5rem; width: 100%"
+/>
+<table>
+  <thead>
+    <tr>
+      <th>Acciones</th>
+      <th>Nombre</th>
+      <th>Género</th>
+      <th>Edad</th>
+      <th>Identificación</th>
+      <th>Dirección</th>
+      <th>Teléfono</th>
+      <th>Estado</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let c of filteredClientes">
+      <td>
+        <button type="button" (click)="abrirEditarCliente(c)">Editar</button>
+        <button type="button" (click)="abrirEliminarCliente(c)">
+          Eliminar
+        </button>
+      </td>
+      <td>{{ c.nombre }}</td>
+      <td>{{ c.genero }}</td>
+      <td>{{ c.edad }}</td>
+      <td>{{ c.identificacion }}</td>
+      <td>{{ c.direccion }}</td>
+      <td>{{ c.telefono }}</td>
+      <td>{{ c.estado ? "Activo" : "Inactivo" }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Modal para crear nuevo cliente -->
+<div *ngIf="mostrarModalAdd" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Nuevo Cliente</h3>
+    <form #addClienteForm="ngForm" (ngSubmit)="crearCliente()">
+      <div>
+        <label>Nombre:</label>
+        <input
+          type="text"
+          placeholder="Nombre"
+          [(ngModel)]="nuevoCliente.nombre"
+          name="nombre"
+          required
+          minlength="5"
+          maxlength="100"
+          #nombre="ngModel"
+        />
+        <div *ngIf="nombre.invalid && nombre.touched" class="error">
+          <span *ngIf="nombre.errors?.['required']">
+            El nombre es obligatorio.
+          </span>
+          <span *ngIf="nombre.errors?.['minlength']">Mínimo 3 caracteres.</span>
+        </div>
+      </div>
+      <div>
+        <label>Género:</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="genero"
+              [(ngModel)]="nuevoCliente.genero"
+              value="M"
+              required
+              #generoM="ngModel"
+              style="width: auto"
+            />
+            Masculino
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="genero"
+              [(ngModel)]="nuevoCliente.genero"
+              value="F"
+              required
+              #generoF="ngModel"
+              style="width: auto"
+            />
+            Femenino
+          </label>
+        </div>
+        <div
+          *ngIf="addClienteForm.submitted && !nuevoCliente.genero"
+          class="error"
+        >
+          El género es obligatorio.
+        </div>
+      </div>
+      <div>
+        <label>Edad:</label>
+        <input
+          type="number"
+          placeholder="Edad"
+          [(ngModel)]="nuevoCliente.edad"
+          name="edad"
+          required
+          min="1"
+          max="120"
+          #edad="ngModel"
+        />
+        <div *ngIf="edad.invalid && edad.touched" class="error">
+          <span *ngIf="edad.errors?.['required']">La edad es obligatoria.</span>
+          <span *ngIf="edad.errors?.['min']">Edad mínima: 1.</span>
+          <span *ngIf="edad.errors?.['max']">Edad máxima: 120.</span>
+        </div>
+      </div>
+      <div>
+        <label>Identificación:</label>
+        <input
+          type="text"
+          placeholder="Identificación"
+          [(ngModel)]="nuevoCliente.identificacion"
+          name="identificacion"
+          required
+          minlength="10"
+          maxlength="10"
+          #identificacion="ngModel"
+        />
+        <div
+          *ngIf="identificacion.invalid && identificacion.touched"
+          class="error"
+        >
+          <span *ngIf="identificacion.errors?.['required']">
+            La identificación es obligatoria.
+          </span>
+          <span *ngIf="identificacion.errors?.['minlength']">
+            Mínimo 5 caracteres.
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Dirección:</label>
+        <input
+          type="text"
+          placeholder="Dirección"
+          [(ngModel)]="nuevoCliente.direccion"
+          name="direccion"
+          required
+          minlength="5"
+          maxlength="200"
+          #direccion="ngModel"
+        />
+        <div *ngIf="direccion.invalid && direccion.touched" class="error">
+          <span *ngIf="direccion.errors?.['required']">
+            La dirección es obligatoria.
+          </span>
+          <span *ngIf="direccion.errors?.['minlength']">
+            Mínimo 5 caracteres.
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Teléfono:</label>
+        <input
+          type="text"
+          placeholder="Teléfono"
+          [(ngModel)]="nuevoCliente.telefono"
+          name="telefono"
+          required
+          pattern="^[0-9]{7,20}$"
+          #telefono="ngModel"
+        />
+        <div *ngIf="telefono.invalid && telefono.touched" class="error">
+          <span *ngIf="telefono.errors?.['required']">
+            El teléfono es obligatorio.
+          </span>
+          <span *ngIf="telefono.errors?.['pattern']">
+            Solo números (7-20 dígitos).
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Contraseña:</label>
+        <input
+          type="password"
+          placeholder="Contraseña"
+          [(ngModel)]="nuevoCliente.contrasena"
+          name="contrasena"
+          required
+          minlength="5"
+          maxlength="100"
+          #contrasena="ngModel"
+        />
+        <div *ngIf="contrasena.invalid && contrasena.touched" class="error">
+          <span *ngIf="contrasena.errors?.['required']">
+            La contraseña es obligatoria.
+          </span>
+          <span *ngIf="contrasena.errors?.['minlength']">
+            Mínimo 5 caracteres.
+          </span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button
+          type="button"
+          (click)="mostrarModalAdd = false; nuevoCliente = getClienteVacio()"
+        >
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="addClienteForm.invalid">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para actualizar cliente -->
+<div *ngIf="mostrarModalUpdate" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Actualizar Cliente</h3>
+    <form #updateClienteForm="ngForm" (ngSubmit)="actualizarCliente()">
+      <div>
+        <label>Nombre:</label>
+        <input
+          type="text"
+          placeholder="Nombre"
+          [(ngModel)]="clienteSeleccionado.nombre"
+          name="nombre"
+          required
+          minlength="5"
+          maxlength="100"
+          #nombre="ngModel"
+        />
+        <div *ngIf="nombre.invalid && nombre.touched" class="error">
+          <span *ngIf="nombre.errors?.['required']">
+            El nombre es obligatorio.
+          </span>
+          <span *ngIf="nombre.errors?.['minlength']">Mínimo 3 caracteres.</span>
+        </div>
+      </div>
+      <div>
+        <label>Género:</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="genero"
+              [(ngModel)]="clienteSeleccionado.genero"
+              value="M"
+              required
+              #generoM="ngModel"
+              style="width: auto"
+            />
+            Masculino
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="genero"
+              [(ngModel)]="clienteSeleccionado.genero"
+              value="F"
+              required
+              #generoF="ngModel"
+              style="width: auto"
+            />
+            Femenino
+          </label>
+        </div>
+        <div
+          *ngIf="updateClienteForm.submitted && !clienteSeleccionado.genero"
+          class="error"
+        >
+          El género es obligatorio.
+        </div>
+      </div>
+      <div>
+        <label>Edad:</label>
+        <input
+          type="number"
+          placeholder="Edad"
+          [(ngModel)]="clienteSeleccionado.edad"
+          name="edad"
+          required
+          min="1"
+          max="120"
+          #edad="ngModel"
+        />
+        <div *ngIf="edad.invalid && edad.touched" class="error">
+          <span *ngIf="edad.errors?.['required']">La edad es obligatoria.</span>
+          <span *ngIf="edad.errors?.['min']">Edad mínima: 1.</span>
+          <span *ngIf="edad.errors?.['max']">Edad máxima: 120.</span>
+        </div>
+      </div>
+      <div>
+        <label>Identificación:</label>
+        <input
+          type="text"
+          placeholder="Identificación"
+          [(ngModel)]="clienteSeleccionado.identificacion"
+          name="identificacion"
+          required
+          minlength="10"
+          maxlength="10"
+          #identificacion="ngModel"
+        />
+        <div
+          *ngIf="identificacion.invalid && identificacion.touched"
+          class="error"
+        >
+          <span *ngIf="identificacion.errors?.['required']">
+            La identificación es obligatoria.
+          </span>
+          <span *ngIf="identificacion.errors?.['minlength']">
+            Mínimo 5 caracteres.
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Dirección:</label>
+        <input
+          type="text"
+          placeholder="Dirección"
+          [(ngModel)]="clienteSeleccionado.direccion"
+          name="direccion"
+          required
+          minlength="5"
+          maxlength="200"
+          #direccion="ngModel"
+        />
+        <div *ngIf="direccion.invalid && direccion.touched" class="error">
+          <span *ngIf="direccion.errors?.['required']">
+            La dirección es obligatoria.
+          </span>
+          <span *ngIf="direccion.errors?.['minlength']">
+            Mínimo 5 caracteres.
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Teléfono:</label>
+        <input
+          type="text"
+          placeholder="Teléfono"
+          [(ngModel)]="clienteSeleccionado.telefono"
+          name="telefono"
+          required
+          pattern="^[0-9]{7,20}$"
+          #telefono="ngModel"
+        />
+        <div *ngIf="telefono.invalid && telefono.touched" class="error">
+          <span *ngIf="telefono.errors?.['required']">
+            El teléfono es obligatorio.
+          </span>
+          <span *ngIf="telefono.errors?.['pattern']">
+            Solo números (7-20 dígitos).
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Contraseña:</label>
+        <input
+          type="password"
+          placeholder="Contraseña"
+          [(ngModel)]="clienteSeleccionado.contrasena"
+          name="contrasena"
+          required
+          minlength="5"
+          maxlength="100"
+          #contrasena="ngModel"
+        />
+        <div *ngIf="contrasena.invalid && contrasena.touched" class="error">
+          <span *ngIf="contrasena.errors?.['required']">
+            La contraseña es obligatoria.
+          </span>
+          <span *ngIf="contrasena.errors?.['minlength']">
+            Mínimo 5 caracteres.
+          </span>
+        </div>
+      </div>
+      <div>
+        <label>Estado:</label>
+        <input
+          type="checkbox"
+          [(ngModel)]="clienteSeleccionado.estado"
+          name="estado"
+          style="width: auto"
+        />
+        <span>{{ clienteSeleccionado.estado ? "Activo" : "Inactivo" }}</span>
+      </div>
+      <div class="modal-actions">
+        <button type="button" (click)="mostrarModalUpdate = false">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="updateClienteForm.invalid">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para eliminar cliente -->
+<div *ngIf="mostrarModalDelete" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Eliminar Cliente</h3>
+    <p>
+      ¿Está seguro que desea eliminar a
+      <strong>{{ clienteSeleccionado.nombre }}</strong
+      >?
+    </p>
+    <div class="modal-actions">
+      <button type="button" (click)="mostrarModalDelete = false">
+        Cancelar
+      </button>
+      <button type="button" (click)="eliminarCliente()">Eliminar</button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,61 @@
+<h2>Reporte de Estado de Cuenta</h2>
+
+<div style="display: flex; gap: 1rem; margin-bottom: 1rem">
+  <div>
+    <label>Cliente:</label>
+    <select name="clienteId" [(ngModel)]="clienteId" required>
+      <option value="" disabled selected>Seleccione un cliente</option>
+      <option *ngFor="let cliente of clientes" [value]="cliente.personaId">
+        {{ cliente.nombre }} ({{ cliente.identificacion }})
+      </option>
+    </select>
+  </div>
+  <div>
+    <label>Fecha inicio:</label>
+    <input type="date" [(ngModel)]="fechaInicio" name="fechaInicio" required />
+  </div>
+  <div>
+    <label>Fecha fin:</label>
+    <input type="date" [(ngModel)]="fechaFin" name="fechaFin" required />
+  </div>
+  <button
+    type="button"
+    style="height: fit-content; align-self: end"
+    [disabled]="!clienteId || !fechaInicio || !fechaFin"
+    (click)="consultar(clienteId!, fechaInicio!, fechaFin!)"
+  >
+    Consultar
+  </button>
+  <button
+    type="button"
+    style="height: fit-content; align-self: end"
+    [disabled]="
+      !clienteId || !fechaInicio || !fechaFin || detalles.length === 0
+    "
+    (click)="descargar(clienteId!, fechaInicio!, fechaFin!)"
+  >
+    Descargar
+  </button>
+</div>
+
+<table>
+  <thead>
+    <tr>
+      <th>Cuenta</th>
+      <th>Saldo</th>
+      <th>Total Débitos</th>
+      <th>Total Créditos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngIf="detalles.length === 0">
+      <td colspan="4" style="text-align: center">No hay datos para mostrar.</td>
+    </tr>
+    <tr *ngFor="let d of detalles">
+      <td>{{ d.numeroCuenta }}</td>
+      <td>{{ d.saldo | currency }}</td>
+      <td>{{ d.totalDebito | currency }}</td>
+      <td>{{ d.totalCredito | currency }}</td>
+    </tr>
+  </tbody>
+</table>

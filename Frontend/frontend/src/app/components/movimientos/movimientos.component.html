@@ -1,0 +1,257 @@
+<h2>Movimientos</h2>
+<button
+  type="button"
+  (click)="mostrarModalAdd = true"
+  style="margin-bottom: 1rem"
+>
+  Nuevo Movimiento
+</button>
+<input
+  type="text"
+  placeholder="Buscar por número de cuenta o cliente (nombre / identificación)"
+  [(ngModel)]="filtro"
+  style="margin-bottom: 1rem; padding: 0.5rem; width: 100%"
+/>
+<table>
+  <thead>
+    <tr>
+      <th>Acciones</th>
+      <th>Fecha</th>
+      <th>Tipo</th>
+      <th>Valor</th>
+      <th>Saldo</th>
+      <th>Cuenta</th>
+      <th>Cliente</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr *ngFor="let m of filteredMovimientos">
+      <td>
+        <button type="button" (click)="abrirEditarMovimiento(m)">Editar</button>
+        <button type="button" (click)="abrirEliminarMovimiento(m)">
+          Eliminar
+        </button>
+      </td>
+      <td>{{ m.fecha | date : "medium" }}</td>
+      <td>
+        {{
+          m.tipoMovimiento === "C"
+            ? "Crédito"
+            : m.tipoMovimiento === "D"
+            ? "Débito"
+            : m.tipoMovimiento
+        }}
+      </td>
+      <td>{{ m.valor | currency }}</td>
+      <td>{{ m.saldo | currency }}</td>
+      <td>{{ m.cuenta?.numeroCuenta }} ({{ m.cuenta?.tipoCuenta }})</td>
+      <td>{{ m.cuenta?.cliente?.nombre }}</td>
+    </tr>
+  </tbody>
+</table>
+
+<!-- Modal para crear nuevo movimiento -->
+<div *ngIf="mostrarModalAdd" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Nuevo Movimiento</h3>
+    <form #addMovimientoForm="ngForm" (ngSubmit)="crearMovimiento()">
+      <div>
+        <label>Tipo de Movimiento:</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="tipoMovimiento"
+              [(ngModel)]="nuevoMovimiento.tipoMovimiento"
+              value="C"
+              required
+              #tipoMovimientoC="ngModel"
+              style="width: auto"
+            />
+            Crédito
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="tipoMovimiento"
+              [(ngModel)]="nuevoMovimiento.tipoMovimiento"
+              value="D"
+              required
+              #tipoMovimientoD="ngModel"
+              style="width: auto"
+            />
+            Débito
+          </label>
+        </div>
+        <div
+          *ngIf="addMovimientoForm.submitted && !nuevoMovimiento.tipoMovimiento"
+          class="error"
+        >
+          El tipo de movimiento es obligatorio.
+        </div>
+      </div>
+      <div>
+        <label>Valor:</label>
+        <input
+          type="number"
+          placeholder="Valor"
+          [(ngModel)]="nuevoMovimiento.valor"
+          name="valor"
+          required
+          min="5"
+          #valor="ngModel"
+        />
+        <div *ngIf="valor.invalid && valor.touched" class="error">
+          <span *ngIf="valor.errors?.['required']">
+            El valor es obligatorio.
+          </span>
+          <span *ngIf="valor.errors?.['min']">Valor mínimo: 5.00.</span>
+        </div>
+      </div>
+      <div>
+        <label>Cuenta:</label>
+        <select
+          [(ngModel)]="nuevoMovimiento.cuentaId"
+          name="cuentaId"
+          required
+          #cuentaId="ngModel"
+        >
+          <option value="" disabled selected>Seleccione una cuenta</option>
+          <option *ngFor="let cuenta of cuentas" [value]="cuenta.cuentaId">
+            {{ cuenta.numeroCuenta }} ({{ cuenta.tipoCuenta }}) -
+            {{ cuenta.cliente?.nombre }}
+          </option>
+        </select>
+        <div *ngIf="cuentaId.invalid && cuentaId.touched" class="error">
+          <span *ngIf="cuentaId.errors?.['required']">
+            La cuenta es obligatoria.
+          </span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button
+          type="button"
+          (click)="
+            mostrarModalAdd = false; nuevoMovimiento = getMovimientoVacio()
+          "
+        >
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="addMovimientoForm.invalid">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para actualizar movimiento -->
+<div *ngIf="mostrarModalUpdate" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Actualizar Movimiento</h3>
+    <form #updateMovimientoForm="ngForm" (ngSubmit)="actualizarMovimiento()">
+      <div>
+        <label>Tipo de Movimiento:</label>
+        <div>
+          <label>
+            <input
+              type="radio"
+              name="tipoMovimiento"
+              [(ngModel)]="movimientoSeleccionado.tipoMovimiento"
+              value="C"
+              required
+              #tipoMovimientoC="ngModel"
+              style="width: auto"
+            />
+            Crédito
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="tipoMovimiento"
+              [(ngModel)]="movimientoSeleccionado.tipoMovimiento"
+              value="D"
+              required
+              #tipoMovimientoD="ngModel"
+              style="width: auto"
+            />
+            Débito
+          </label>
+        </div>
+        <div
+          *ngIf="
+            updateMovimientoForm.submitted &&
+            !movimientoSeleccionado.tipoMovimiento
+          "
+          class="error"
+        >
+          El tipo de movimiento es obligatorio.
+        </div>
+      </div>
+      <div>
+        <label>Valor:</label>
+        <input
+          type="number"
+          placeholder="Valor"
+          [(ngModel)]="movimientoSeleccionado.valor"
+          name="valor"
+          required
+          min="5"
+          #valor="ngModel"
+        />
+        <div *ngIf="valor.invalid && valor.touched" class="error">
+          <span *ngIf="valor.errors?.['required']">
+            El valor es obligatorio.
+          </span>
+          <span *ngIf="valor.errors?.['min']">Valor mínimo: 5.00.</span>
+        </div>
+      </div>
+      <div>
+        <label>Cuenta:</label>
+        <select
+          [(ngModel)]="movimientoSeleccionado.cuentaId"
+          name="cuentaId"
+          required
+          #cuentaId="ngModel"
+        >
+          <option value="" disabled selected>Seleccione una cuenta</option>
+          <option *ngFor="let cuenta of cuentas" [value]="cuenta.cuentaId">
+            {{ cuenta.numeroCuenta }} ({{ cuenta.tipoCuenta }}) -
+            {{ cuenta.cliente?.nombre }}
+          </option>
+        </select>
+        <div *ngIf="cuentaId.invalid && cuentaId.touched" class="error">
+          <span *ngIf="cuentaId.errors?.['required']">
+            La cuenta es obligatoria.
+          </span>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" (click)="mostrarModalUpdate = false">
+          Cancelar
+        </button>
+        <button type="submit" [disabled]="updateMovimientoForm.invalid">
+          Guardar
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal para eliminar movimiento -->
+<div *ngIf="mostrarModalDelete" class="modal-backdrop">
+  <div class="modal-content">
+    <h3>Eliminar Movimiento</h3>
+    <p>
+      ¿Está seguro que desea eliminar al movimiento
+      <strong>{{ movimientoSeleccionado.movimientoId }}</strong
+      >?
+    </p>
+    <div class="modal-actions">
+      <button type="button" (click)="mostrarModalDelete = false">
+        Cancelar
+      </button>
+      <button type="button" (click)="eliminarMovimiento()">Eliminar</button>
+    </div>
+  </div>
+</div>
